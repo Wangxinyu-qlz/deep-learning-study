@@ -14,12 +14,13 @@ from model import AlexNet
 
 
 def main():
+    # 指定训练使用的设备
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("using {} device.".format(device))
 
     data_transform = {
-        "train": transforms.Compose([transforms.RandomResizedCrop(224),
-                                     transforms.RandomHorizontalFlip(),
+        "train": transforms.Compose([transforms.RandomResizedCrop(224),  # 随机裁剪
+                                     transforms.RandomHorizontalFlip(),  # 水平翻转
                                      transforms.ToTensor(),
                                      transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]),
         "val": transforms.Compose([transforms.Resize((224, 224)),  # cannot 224, must (224, 224)
@@ -28,16 +29,17 @@ def main():
 
     data_root = os.path.abspath(os.path.join(os.getcwd(), "../.."))  # get data root path
     image_path = os.path.join(data_root, "data_set", "flower_data")  # flower data set path
+    # 断言
     assert os.path.exists(image_path), "{} path does not exist.".format(image_path)
     train_dataset = datasets.ImageFolder(root=os.path.join(image_path, "train"),
                                          transform=data_transform["train"])
-    train_num = len(train_dataset)
+    train_num = len(train_dataset)  # 获取训练集的大小
 
     # {'daisy':0, 'dandelion':1, 'roses':2, 'sunflower':3, 'tulips':4}
-    flower_list = train_dataset.class_to_idx
-    cla_dict = dict((val, key) for key, val in flower_list.items())
+    flower_list = train_dataset.class_to_idx  # 获取分类的名称对应的索引
+    cla_dict = dict((val, key) for key, val in flower_list.items())  # 将键值对儿反过来，方便直接获得类别
     # write dict into json file
-    json_str = json.dumps(cla_dict, indent=4)
+    json_str = json.dumps(cla_dict, indent=4)  # 编码为json的格式
     with open('class_indices.json', 'w') as json_file:
         json_file.write(json_str)
 
@@ -48,7 +50,6 @@ def main():
     train_loader = torch.utils.data.DataLoader(train_dataset,
                                                batch_size=batch_size, shuffle=True,
                                                num_workers=nw)
-
     validate_dataset = datasets.ImageFolder(root=os.path.join(image_path, "val"),
                                             transform=data_transform["val"])
     val_num = len(validate_dataset)
@@ -72,10 +73,11 @@ def main():
 
     net = AlexNet(num_classes=5, init_weights=True)
 
+    # 将网络放在指定的设备上
     net.to(device)
     loss_function = nn.CrossEntropyLoss()
-    # pata = list(net.parameters())
-    optimizer = optim.Adam(net.parameters(), lr=0.0002)
+    # pata = list(net.parameters())  # 获取模型的参数
+    optimizer = optim.Adam(net.parameters(), lr=0.0002)  # 优化对象：net.parameters()网络中的所有参数
 
     epochs = 10
     save_path = './AlexNet.pth'
@@ -83,12 +85,13 @@ def main():
     train_steps = len(train_loader)
     for epoch in range(epochs):
         # train
+        # 通过net.train()和net.eval()管理Dropout()策略，只在训练过程中进行Dropout()
         net.train()
         running_loss = 0.0
         train_bar = tqdm(train_loader, file=sys.stdout)
         for step, data in enumerate(train_bar):
             images, labels = data
-            optimizer.zero_grad()
+            optimizer.zero_grad()  # 清空梯度信息
             outputs = net(images.to(device))
             loss = loss_function(outputs, labels.to(device))
             loss.backward()
@@ -102,7 +105,7 @@ def main():
                                                                      loss)
 
         # validate
-        net.eval()
+        net.eval()  # 关闭Dropout()
         acc = 0.0  # accumulate accurate number / epoch
         with torch.no_grad():
             val_bar = tqdm(validate_loader, file=sys.stdout)

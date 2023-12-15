@@ -15,6 +15,8 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("using {} device.".format(device))
 
+    # TODO 如果使用VGG做迁移学习，通常的图像处理方式是，将RGB三通道的数值分别减去[123.68,116.78,103.94]
+    #  [123.68,116.78,103.94]是ImageNet数据集的RGB均值
     data_transform = {
         "train": transforms.Compose([transforms.RandomResizedCrop(224),
                                      transforms.RandomHorizontalFlip(),

@@ -6,17 +6,25 @@ import torch.nn.functional as F
 class GoogLeNet(nn.Module):
     def __init__(self, num_classes=1000, aux_logits=True, init_weights=False):
         super(GoogLeNet, self).__init__()
+        # 是否使用辅助分类器
         self.aux_logits = aux_logits
 
+        # 64？：看论文中的参数表格
         self.conv1 = BasicConv2d(3, 64, kernel_size=7, stride=2, padding=3)
+        # ceil_mode=True小数向上取整  ceil_mode=False小数向下取整
         self.maxpool1 = nn.MaxPool2d(3, stride=2, ceil_mode=True)
+
+        # 这里因为LocalRespNorm层没有什么效果，所以丢弃了
+        # nn.LocalResponseNorm()
 
         self.conv2 = BasicConv2d(64, 64, kernel_size=1)
         self.conv3 = BasicConv2d(64, 192, kernel_size=3, padding=1)
         self.maxpool2 = nn.MaxPool2d(3, stride=2, ceil_mode=True)
 
         self.inception3a = Inception(192, 64, 96, 128, 16, 32, 32)
+        # TODO why256?
         self.inception3b = Inception(256, 128, 128, 192, 32, 96, 64)
+
         self.maxpool3 = nn.MaxPool2d(3, stride=2, ceil_mode=True)
 
         self.inception4a = Inception(480, 192, 96, 208, 16, 48, 64)
@@ -24,6 +32,7 @@ class GoogLeNet(nn.Module):
         self.inception4c = Inception(512, 128, 128, 256, 24, 64, 64)
         self.inception4d = Inception(512, 112, 144, 288, 32, 64, 64)
         self.inception4e = Inception(528, 256, 160, 320, 32, 128, 128)
+
         self.maxpool4 = nn.MaxPool2d(3, stride=2, ceil_mode=True)
 
         self.inception5a = Inception(832, 256, 160, 320, 32, 128, 128)
@@ -33,8 +42,11 @@ class GoogLeNet(nn.Module):
             self.aux1 = InceptionAux(512, num_classes)
             self.aux2 = InceptionAux(528, num_classes)
 
+        # 平均池化下采样
+        # 自适应池化下采样，对于输入的任意尺寸(h,w)的特征矩阵，输出的特征矩阵总是(1,1)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.dropout = nn.Dropout(0.4)
+        # 展平后的结点个数是1024，输出的个数是num_classes
         self.fc = nn.Linear(1024, num_classes)
         if init_weights:
             self._initialize_weights()
@@ -60,6 +72,7 @@ class GoogLeNet(nn.Module):
         # N x 480 x 14 x 14
         x = self.inception4a(x)
         # N x 512 x 14 x 14
+        # 训练模型使用辅助分类器，验证模式不使用
         if self.training and self.aux_logits:    # eval model lose this layer
             aux1 = self.aux1(x)
 
@@ -86,6 +99,7 @@ class GoogLeNet(nn.Module):
         x = torch.flatten(x, 1)
         # N x 1024
         x = self.dropout(x)
+        # 全连接
         x = self.fc(x)
         # N x 1000 (num_classes)
         if self.training and self.aux_logits:   # eval model lose this layer
@@ -103,10 +117,13 @@ class GoogLeNet(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
 
+# inception模块
 class Inception(nn.Module):
     def __init__(self, in_channels, ch1x1, ch3x3red, ch3x3, ch5x5red, ch5x5, pool_proj):
         super(Inception, self).__init__()
 
+        # 每个分支所得的特征矩阵的高和宽应当相等
+        # 第一个分支
         self.branch1 = BasicConv2d(in_channels, ch1x1, kernel_size=1)
 
         self.branch2 = nn.Sequential(
@@ -133,35 +150,49 @@ class Inception(nn.Module):
         branch4 = self.branch4(x)
 
         outputs = [branch1, branch2, branch3, branch4]
+        # 对四个分支的结果进行合并，需要合并的维度为channels，在深度上进行拼接，所以dim=1
+        # [batch, channels, height, width]
         return torch.cat(outputs, 1)
 
 
+# 辅助分类器模板 auxiliary classifier template
 class InceptionAux(nn.Module):
     def __init__(self, in_channels, num_classes):
         super(InceptionAux, self).__init__()
         self.averagePool = nn.AvgPool2d(kernel_size=5, stride=3)
         self.conv = BasicConv2d(in_channels, 128, kernel_size=1)  # output[batch, 128, 4, 4]
 
+        # 全连接层
         self.fc1 = nn.Linear(2048, 1024)
         self.fc2 = nn.Linear(1024, num_classes)
 
     def forward(self, x):
-        # aux1: N x 512 x 14 x 14, aux2: N x 528 x 14 x 14
+        # aux1输入的特征维度: N x 512 x 14 x 14, aux2输入的特征维度: N x 528 x 14 x 14
         x = self.averagePool(x)
+
         # aux1: N x 512 x 4 x 4, aux2: N x 528 x 4 x 4
         x = self.conv(x)
+
         # N x 128 x 4 x 4
         x = torch.flatten(x, 1)
+
+        # TODO 原文中使用的0.7，但是工程实践中0.5最好，具体根据自己的任务进行调整
         x = F.dropout(x, 0.5, training=self.training)
+
         # N x 2048
         x = F.relu(self.fc1(x), inplace=True)
+        # 实例化一个模型后，通过model.train()和model.eval()控制模型的状态
+        # model.train()->self.training=True
+        # model.train()->self.training=False
         x = F.dropout(x, 0.5, training=self.training)
+
         # N x 1024
         x = self.fc2(x)
         # N x num_classes
         return x
 
 
+# 卷积模板，精简代码
 class BasicConv2d(nn.Module):
     def __init__(self, in_channels, out_channels, **kwargs):
         super(BasicConv2d, self).__init__()

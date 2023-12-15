@@ -51,6 +51,7 @@ def get_transform(train):
 def create_model(aux, num_classes, pretrain=True):
     model = deeplabv3_resnet50(aux=aux, num_classes=num_classes)
 
+    # TODO
     if pretrain:
         weights_dict = torch.load("./deeplabv3_resnet50_coco.pth", map_location='cpu')
 
@@ -78,15 +79,16 @@ def main(args):
     # 用来保存训练以及验证过程中信息
     results_file = "results{}.txt".format(datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
 
+    # TODO 改为VOC2007
     # VOCdevkit -> VOC2012 -> ImageSets -> Segmentation -> train.txt
     train_dataset = VOCSegmentation(args.data_path,
-                                    year="2012",
+                                    year="2007",
                                     transforms=get_transform(train=True),
                                     txt_name="train.txt")
 
     # VOCdevkit -> VOC2012 -> ImageSets -> Segmentation -> val.txt
     val_dataset = VOCSegmentation(args.data_path,
-                                  year="2012",
+                                  year="2007",
                                   transforms=get_transform(train=False),
                                   txt_name="val.txt")
 

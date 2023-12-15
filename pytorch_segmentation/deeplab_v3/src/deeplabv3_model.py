@@ -28,6 +28,13 @@ class IntermediateLayerGetter(nn.ModuleDict):
             of the modules for which the activations will be returned as
             the key of the dict, and the value of the dict is the name
             of the returned activation (which the user can specify).
+    这个IntermediateLayerGetter类的目的是提取模型中间层的输出,而不是完成整个模型的前向传播。
+    具体来说,这个forward函数的作用是:
+        创建一个有序字典out来存储返回的中间层输出
+        遍历模型的所有模块(self.items()),依次传递输入x给每个模块
+        如果模块名在return_layers指定的中间层名字中,就将该模块的输出存储到out字典中,键名是return_layers中指定的名称
+        最终返回out字典,包含所有指定的中间层输出
+    所以它不会传播张量x直到输出层,而是在中间层提取特征,这些中间层由return_layers参数指定。它允许我们在不改变模型的情况下得到中间层输出。
     """
     _version = 2
     __annotations__ = {
@@ -52,6 +59,7 @@ class IntermediateLayerGetter(nn.ModuleDict):
         super(IntermediateLayerGetter, self).__init__(layers)
         self.return_layers = orig_return_layers
 
+    # 提取模型 中间层 的输出
     def forward(self, x: Tensor) -> Dict[str, Tensor]:
         out = OrderedDict()
         for name, module in self.items():
@@ -62,6 +70,7 @@ class IntermediateLayerGetter(nn.ModuleDict):
         return out
 
 
+# 继承自nn.Module父类
 class DeepLabV3(nn.Module):
     """
     Implements DeepLabV3 model from
@@ -79,12 +88,15 @@ class DeepLabV3(nn.Module):
     """
     __constants__ = ['aux_classifier']
 
+    # 定义基本的网络结构
     def __init__(self, backbone, classifier, aux_classifier=None):
+        # 继承父类的构造函数
         super(DeepLabV3, self).__init__()
         self.backbone = backbone
         self.classifier = classifier
         self.aux_classifier = aux_classifier
 
+    # 定义传播的顺序
     def forward(self, x: Tensor) -> Dict[str, Tensor]:
         input_shape = x.shape[-2:]
         # contract: features is a dict of tensors
@@ -110,6 +122,23 @@ class DeepLabV3(nn.Module):
 class FCNHead(nn.Sequential):
     def __init__(self, in_channels, channels):
         inter_channels = in_channels // 4
+        """
+        nn.Conv2d()函数参数列表：
+            def __init__(
+                self,
+                in_channels: int,  # 输入的通道数 RGB==3
+                out_channels: int,  # 输出的通道数 卷积核的个数==RGB==3
+                kernel_size: _size_2_t, # 卷积核的大小
+                stride: _size_2_t = 1,  # 卷积核的步长
+                padding: Union[str, _size_2_t] = 0,  # 卷积核的填充，四周补充0
+                dilation: _size_2_t = 1,
+                groups: int = 1,
+                bias: bool = True,
+                padding_mode: str = 'zeros',  # TODO: refine this type
+                device=None,
+                dtype=None
+            ) -> None:
+        """
         super(FCNHead, self).__init__(
             nn.Conv2d(in_channels, inter_channels, 3, padding=1, bias=False),
             nn.BatchNorm2d(inter_channels),
@@ -181,6 +210,7 @@ class DeepLabHead(nn.Sequential):
         super(DeepLabHead, self).__init__(
             ASPP(in_channels, [12, 24, 36]),
             nn.Conv2d(256, 256, 3, padding=1, bias=False),
+            # TODO 正则化
             nn.BatchNorm2d(256),
             nn.ReLU(),
             nn.Conv2d(256, num_classes, 1)

@@ -40,6 +40,8 @@ def main():
     # load model weights
     weights_path = "./googleNet.pth"
     assert os.path.exists(weights_path), "file: '{}' dose not exist.".format(weights_path)
+    # TODO strict=False: ignore the missing keys
+    #  参数中保留了两个辅助分类器的参数，但是预测搭建的模型没有辅助分类器，所以忽略这部分
     missing_keys, unexpected_keys = model.load_state_dict(torch.load(weights_path, map_location=device),
                                                           strict=False)
 

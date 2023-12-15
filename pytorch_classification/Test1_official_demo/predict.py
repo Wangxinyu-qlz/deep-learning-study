@@ -7,7 +7,7 @@ from model import LeNet
 
 def main():
     transform = transforms.Compose(
-        [transforms.Resize((32, 32)),
+        [transforms.Resize((32, 32)),  # 输入图像未必符合32*32的尺寸
          transforms.ToTensor(),
          transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
@@ -19,11 +19,12 @@ def main():
 
     im = Image.open('1.jpg')
     im = transform(im)  # [C, H, W]
-    im = torch.unsqueeze(im, dim=0)  # [N, C, H, W]
+    im = torch.unsqueeze(im, dim=0)  # [N, C, H, W] 添加一个维度
 
     with torch.no_grad():
         outputs = net(im)
-        predict = torch.max(outputs, dim=1)[1].numpy()
+        # predict = torch.max(outputs, dim=1)[1].numpy()
+        predict = torch.softmax(outputs, dim=1)
     print(classes[int(predict)])
 
 

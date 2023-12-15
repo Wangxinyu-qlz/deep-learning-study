@@ -2,6 +2,7 @@ import json
 import numpy as np
 from PIL import Image
 
+# 调色板
 # 读取mask标签
 target = Image.open("./2007_001288.png")
 # 获取调色板

@@ -15,13 +15,16 @@ class VGG(nn.Module):
         super(VGG, self).__init__()
         self.features = features
         self.classifier = nn.Sequential(
-            nn.Linear(512*7*7, 4096),
+            # nn.Linear(512*7*7, 4096),
+            nn.Linear(512 * 7 * 7, 2048),
             nn.ReLU(True),
             nn.Dropout(p=0.5),
-            nn.Linear(4096, 4096),
+            # nn.Linear(4096, 4096),
+            nn.Linear(2048, 2048),
             nn.ReLU(True),
             nn.Dropout(p=0.5),
-            nn.Linear(4096, num_classes)
+            # nn.Linear(4096, num_classes)
+            nn.Linear(2048, num_classes)
         )
         if init_weights:
             self._initialize_weights()
@@ -58,6 +61,11 @@ def make_features(cfg: list):
             conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
             layers += [conv2d, nn.ReLU(True)]
             in_channels = v
+    # 通过非关键字参数的形式生成网络结构
+    # *layers中的*表示非关键字
+    # 函数被调用的时候，使用星号 * 解包一个可迭代对象(元组)作为函数的参数。
+    # 字典对象，可以使用两个星号 ** ，解包之后将作为关键字参数传递给函数
+    # 函数传递参数的方式位置参数*args（positional argument） 关键词参数**kwargs（keyword argument）
     return nn.Sequential(*layers)
 
 
@@ -69,9 +77,15 @@ cfgs = {
 }
 
 
+# 实例化配置模型
 def vgg(model_name="vgg16", **kwargs):
     assert model_name in cfgs, "Warning: model number {} not in cfgs dict!".format(model_name)
+    # 通过给定的key得到配置列表（网络的结构参数列表）
     cfg = cfgs[model_name]
-
+    # 实例化VGG网络，
     model = VGG(make_features(cfg), **kwargs)
     return model
+
+
+config = {"num_classes": 1000, "init_weights": True}
+vgg_model = vgg(model_name="vgg13", **config)

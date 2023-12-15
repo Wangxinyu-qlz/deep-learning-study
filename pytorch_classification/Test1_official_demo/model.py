@@ -25,3 +25,14 @@ class LeNet(nn.Module):
         return x
 
 
+if __name__ == '__main__':
+    import torch
+    # TODO 调试查看每层的输出
+    input1 = torch.rand([32, 3, 32, 32])
+    model = LeNet()
+    print(model)
+    output = model(input1)
+    print(output.shape)
+
+    # TODO 查看官方的数据集
+    # torchvision.datasets.
