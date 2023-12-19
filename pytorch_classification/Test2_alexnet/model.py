@@ -7,7 +7,11 @@ class AlexNet(nn.Module):
         super(AlexNet, self).__init__()
         # 通过nn.Sequential()精简代码
         self.features = nn.Sequential(
-            #
+            # TODO channels的设置
+            #     多通道卷积过程，是输入一张三通道的图片，这时有多个卷积核进行卷积，并且每个卷积核都有三通道，分别对这张输入图片的三通道进行卷积操作。
+            #     每个卷积核，分别输出三个通道，这三个通道进行求和，得到一个featuremap，有多少个卷积核，就有多少个featuremap
+            # output = (intput - kernel_size + padding * 2) / stride + 1
+            #        = (224 - 11 + 2 * 2) / 4 + 1 = 54.25 + 1 = 55
             nn.Conv2d(3, 48, kernel_size=11, stride=4, padding=2),  # input[3, 224, 224]  output[48, 55, 55]
             # inplace=True 较少内存占用
             nn.ReLU(inplace=True),

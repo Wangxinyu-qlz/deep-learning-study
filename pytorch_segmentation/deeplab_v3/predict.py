@@ -17,10 +17,12 @@ def time_synchronized():
 
 def main():
     aux = False  # inference time not need aux_classifier
-    classes = 20
-    weights_path = "./save_weights/model_29.pth"
-    img_path = "./test.jpg"
-    palette_path = "./palette.json"
+    classes = 1
+    weights_path = "./save_weights/model_169.pth"
+    img_path = "./test_img/06.png"
+    save_path = "./test_img/06"
+    palette_path = "./palette.json"  # 调色板
+
     assert os.path.exists(weights_path), f"weights {weights_path} not found."
     assert os.path.exists(img_path), f"image {img_path} not found."
     assert os.path.exists(palette_path), f"palette {palette_path} not found."
@@ -75,7 +77,7 @@ def main():
         prediction = prediction.to("cpu").numpy().astype(np.uint8)
         mask = Image.fromarray(prediction)
         mask.putpalette(pallette)
-        mask.save("test_result.png")
+        mask.save(save_path + 'predicted.png')
 
 
 if __name__ == '__main__':

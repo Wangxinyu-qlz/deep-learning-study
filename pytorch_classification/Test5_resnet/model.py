@@ -11,8 +11,8 @@ class BasicBlock(nn.Module):
     # downsample:对应虚线残差结构
     def __init__(self, in_channel, out_channel, stride=1, downsample=None, **kwargs):
         super(BasicBlock, self).__init__()
-        # output = (intput - kernel + 2 * padding)/stride + 1
-        # Stride=1时，output = (intput - 3 + 2 * 1)/1 + 1 =input
+        # output = (input - kernel + 2 * padding)/stride + 1
+        # Stride=1时，output = (input - 3 + 2 * 1)/1 + 1 =input
         # Stride=1时，output = input/2+0.5 = input/2(向下取整)
         # TODO bias = False 因为BN层之前使用bias没有用，不需要
         self.conv1 = nn.Conv2d(in_channels=in_channel, out_channels=out_channel,
