@@ -9,7 +9,7 @@ class AlexNet(nn.Module):
         self.features = nn.Sequential(
             # TODO channels的设置
             #     多通道卷积过程，是输入一张三通道的图片，这时有多个卷积核进行卷积，并且每个卷积核都有三通道，分别对这张输入图片的三通道进行卷积操作。
-            #     每个卷积核，分别输出三个通道，这三个通道进行求和，得到一个featuremap，有多少个卷积核，就有多少个featuremap
+            #     每个卷积核，分别输出三个通道，这三个通道进行求和，得到一个feature_map，有多少个卷积核，就有多少个feature_map
             # output = (intput - kernel_size + padding * 2) / stride + 1
             #        = (224 - 11 + 2 * 2) / 4 + 1 = 54.25 + 1 = 55
             nn.Conv2d(3, 48, kernel_size=11, stride=4, padding=2),  # input[3, 224, 224]  output[48, 55, 55]
@@ -48,9 +48,21 @@ class AlexNet(nn.Module):
 
     def forward(self, x):
         x = self.features(x)
-        # 展平，从维度1(start_dim+1)开始，即不动batch，只进行[channel, height, width]的展平
+        # 展平，从维度1开始，即不动batch，只进行[channel, height, width]的展平
+        # 原始维度：[2, 2, 2] 第0维：最外层中括号中有几个元素：[[1, 2],[3, 4]]和[[5, 6], [7, 8]] 第一维：[1, 2]和[3, 4] 第二维：1和2
+        # >> > t = torch.tensor([[[1, 2],
+        #                         [3, 4]],
+        #                        [[5, 6],
+        #                         [7, 8]]])
+        # 将所有维度展平 0~2维度 --> [8]
+        # >> > torch.flatten(t)
+        # tensor([1, 2, 3, 4, 5, 6, 7, 8])
+        # 将 1~2 维展平 --> [2, 4]
+        # >> > torch.flatten(t, start_dim=1)
+        # tensor([[1, 2, 3, 4],
+        #         [5, 6, 7, 8]])
         # 也可以使用view()函数进行展平
-        x = torch.flatten(x, start_dim=0)
+        x = torch.flatten(x, start_dim=1)
         x = self.classifier(x)
         return x
 

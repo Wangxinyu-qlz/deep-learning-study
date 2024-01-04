@@ -19,7 +19,9 @@ def _make_divisible(ch, divisor=8, min_ch=None):
 
 
 class ConvBNReLU(nn.Sequential):
+    # groups=1 普通卷积  groups=输入特征矩阵的深度(in_channel) DW卷积
     def __init__(self, in_channel, out_channel, kernel_size=3, stride=1, groups=1):
+        # kernel_size=3 -> padding=1    kernel_size=1 -> padding=0
         padding = (kernel_size - 1) // 2
         super(ConvBNReLU, self).__init__(
             nn.Conv2d(in_channel, out_channel, kernel_size, stride, padding, groups=groups, bias=False),

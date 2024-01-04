@@ -1,3 +1,7 @@
+"""
+    批量预测图像
+    思路：将多张图像打包为一个batch
+"""
 import os
 import json
 
@@ -41,10 +45,11 @@ def main():
 
     # prediction
     model.eval()
-    batch_size = 8  # 每次预测时将多少张图片打包成一个batch
+    batch_size = 8  # TODO 每次预测时将多少张图片打包成一个batch 改成预测图像的数量
     with torch.no_grad():
         for ids in range(0, len(img_path_list) // batch_size):
             img_list = []
+            # 将图片预处理之后添加到列表中
             for img_path in img_path_list[ids * batch_size: (ids + 1) * batch_size]:
                 assert os.path.exists(img_path), f"file: '{img_path}' dose not exist."
                 img = Image.open(img_path)

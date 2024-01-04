@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision import transforms, datasets
 from tqdm import tqdm
-
+import torchvision.models.resnet
 from model import resnet34
 
 
@@ -19,9 +19,10 @@ def main():
         "train": transforms.Compose([transforms.RandomResizedCrop(224),
                                      transforms.RandomHorizontalFlip(),
                                      transforms.ToTensor(),
+                                     # TODO 官方标准化参数
                                      transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])]),
-        "val": transforms.Compose([transforms.Resize(256),
-                                   transforms.CenterCrop(224),
+        "val": transforms.Compose([transforms.Resize(256),  # 长宽比固定，最小边缩放到256
+                                   transforms.CenterCrop(224),  # 中心裁剪
                                    transforms.ToTensor(),
                                    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])}
 
@@ -57,20 +58,44 @@ def main():
 
     print("using {} images for training, {} images for validation.".format(train_num,
                                                                            val_num))
-    
-    net = resnet34()
-    # load pretrain weights
+
+    # # TODO 迁移学习 1.官方提供的载入预训练模型的方法
+    # net = resnet34()  # 没有传入num_classes参数，实例化之后，全连接层有1000个节点（1000分类）
+    # model_weight_path = "./resnet34-pre.pth"
+    # missing_keys, unexpected_keys = net.load_state_dict(torch.load(model_weight_path), strict=False)
+    # in_channel = net.fc.in_features  # 输入特征矩阵的深度
+    # net.fc = nn.Linear(in_channel, 5)  # 全连接层，重新复制全连接层
+    # net.to(device)
+
+    # # TODO 迁移学习 2.第二种方法
+    # net = resnet34(num_classes=5)  # 传入num_classes参数，实例化之后，全连接层有5个节点（5分类）
+    # model_weight_path = "./resnet34-pre.pth"
+    # # (1)通过torch.load()将预训练参数载入内存，并未载入模型中，得到的是一个字典
+    # pth_dict = torch.load(model_weight_path)
+    # # (2)将全连接层的参数删除
+    # new_state_dict = {}
+    # for key, value in pth_dict.items():
+    #     if not key.startswith('fc.'):  # 假设全连接层的命名是'fc'
+    #         new_state_dict[key] = value
+    # # (3)将预训练参数载入模型
+    # net.load_state_dict(new_state_dict)
+
+    net = resnet34()  # 没有传入num_classes参数，实例化之后，全连接层有1000个节点（1000分类）
     # download url: https://download.pytorch.org/models/resnet34-333f7ec4.pth
     model_weight_path = "./resnet34-pre.pth"
     assert os.path.exists(model_weight_path), "file {} does not exist.".format(model_weight_path)
-    net.load_state_dict(torch.load(model_weight_path, map_location='cpu'))
+    # TODO 改一下map_location???
+    net.load_state_dict(torch.load(model_weight_path, map_location='cpu'), strict=False)
+    # TODO 冻结所有网络的权重，目的是只训练最后一层
     # for param in net.parameters():
     #     param.requires_grad = False
-
-    # change fc layer structure
-    in_channel = net.fc.in_features
-    net.fc = nn.Linear(in_channel, 5)
+    in_channel = net.fc.in_features  # 输入特征矩阵的深度
+    net.fc = nn.Linear(in_channel, 5)  # 全连接层，重新复制全连接层
     net.to(device)
+
+    # 如果不是用迁移学习，使用以下代码
+    # net = resnet34(num_classes=num_classes)
+    # net.to(device)
 
     # define loss function
     loss_function = nn.CrossEntropyLoss()
@@ -84,7 +109,7 @@ def main():
     save_path = './resNet34.pth'
     train_steps = len(train_loader)
     for epoch in range(epochs):
-        # train
+        # TODO train 控制NB层的状态
         net.train()
         running_loss = 0.0
         train_bar = tqdm(train_loader, file=sys.stdout)
@@ -103,7 +128,7 @@ def main():
                                                                      epochs,
                                                                      loss)
 
-        # validate
+        # TODO validate 控制NB层的状态
         net.eval()
         acc = 0.0  # accumulate accurate number / epoch
         with torch.no_grad():

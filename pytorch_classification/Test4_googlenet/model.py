@@ -23,6 +23,11 @@ class GoogLeNet(nn.Module):
 
         self.inception3a = Inception(192, 64, 96, 128, 16, 32, 32)
         # TODO why256?
+        #  256 = 64+128+32+32(在inception模块)
+        #         outputs = [branch1, branch2, branch3, branch4]
+        #         # 对四个分支的结果进行合并，需要合并的维度为channels，在深度上进行拼接，所以dim=1
+        #         # [batch, channels, height, width]
+        #         return torch.cat(outputs, 1)
         self.inception3b = Inception(256, 128, 128, 192, 32, 96, 64)
 
         self.maxpool3 = nn.MaxPool2d(3, stride=2, ceil_mode=True)
@@ -119,21 +124,34 @@ class GoogLeNet(nn.Module):
 
 # inception模块
 class Inception(nn.Module):
+    """
+        in_channels: 输入通道数
+        1.  ch1x1: 1x1卷积核的个数
+        2.  ch3x3red: 1x1卷积核的个数 降维
+            ch3x3: 3x3卷积核的个数
+        3.  ch5x5red: 1x1卷积核的个数 降维
+            ch5x5: 5x5卷积核的个数
+        4.  (max_pooling)
+            pool_proj: 1x1卷积核的个数
+        1、2、3、4为并行结构
+    """
     def __init__(self, in_channels, ch1x1, ch3x3red, ch3x3, ch5x5red, ch5x5, pool_proj):
         super(Inception, self).__init__()
 
         # 每个分支所得的特征矩阵的高和宽应当相等
         # 第一个分支
-        self.branch1 = BasicConv2d(in_channels, ch1x1, kernel_size=1)
+        self.branch1 = BasicConv2d(in_channels, ch1x1, kernel_size=1)  # stride=1(default)下同
 
         self.branch2 = nn.Sequential(
             BasicConv2d(in_channels, ch3x3red, kernel_size=1),
-            BasicConv2d(ch3x3red, ch3x3, kernel_size=3, padding=1)   # 保证输出大小等于输入大小
+            # TODO padding=1以保证输出大小等于输入大小 output = (intput - kernel_size + 2×padding) / stride + 1
+            BasicConv2d(ch3x3red, ch3x3, kernel_size=3, padding=1)
         )
 
         self.branch3 = nn.Sequential(
             BasicConv2d(in_channels, ch5x5red, kernel_size=1),
             # 在官方的实现中，其实是3x3的kernel并不是5x5，这里我也懒得改了，具体可以参考下面的issue
+            # 官方实现中加入了BN层，并使用两个3×3 kernel代替一个5×5 kernel
             # Please see https://github.com/pytorch/vision/issues/906 for details.
             BasicConv2d(ch5x5red, ch5x5, kernel_size=5, padding=2)   # 保证输出大小等于输入大小
         )
@@ -163,10 +181,13 @@ class InceptionAux(nn.Module):
         self.conv = BasicConv2d(in_channels, 128, kernel_size=1)  # output[batch, 128, 4, 4]
 
         # 全连接层
+        # 128 * 4 * 4 = 2048
+        # 这里的ReLU层在forward函数中
         self.fc1 = nn.Linear(2048, 1024)
         self.fc2 = nn.Linear(1024, num_classes)
 
     def forward(self, x):
+        # N: batch_size
         # aux1输入的特征维度: N x 512 x 14 x 14, aux2输入的特征维度: N x 528 x 14 x 14
         x = self.averagePool(x)
 
@@ -192,7 +213,7 @@ class InceptionAux(nn.Module):
         return x
 
 
-# 卷积模板，精简代码
+# 卷积模板（Conv2d + ReLU），精简代码
 class BasicConv2d(nn.Module):
     def __init__(self, in_channels, out_channels, **kwargs):
         super(BasicConv2d, self).__init__()

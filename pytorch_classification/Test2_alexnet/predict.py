@@ -11,6 +11,7 @@ from model import AlexNet
 
 def main():
     # 可以指定预测使用的设备GPU / CPU
+    # 即使有GPU，如果cuda&troch版本不对，也无法使用GPU
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     data_transform = transforms.Compose(

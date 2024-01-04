@@ -14,11 +14,13 @@ class ActivationsAndGradients:
         self.handles = []
         for target_layer in target_layers:
             self.handles.append(
+                # 正向传播的钩子函数
                 target_layer.register_forward_hook(
                     self.save_activation))
             # Backward compatibility with older pytorch versions:
             if hasattr(target_layer, 'register_full_backward_hook'):
                 self.handles.append(
+                    # 反向传播的钩子函数
                     target_layer.register_full_backward_hook(
                         self.save_gradient))
             else:
