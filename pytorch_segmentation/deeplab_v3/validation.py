@@ -28,7 +28,7 @@ def main(args):
 
     # VOCdevkit -> VOC2012 -> ImageSets -> Segmentation -> val.txt
     val_dataset = VOCSegmentation(args.data_path,
-                                  year="2012",
+                                  year="2007",
                                   transforms=SegmentationPresetEval(520),
                                   txt_name="val.txt")
 
@@ -51,9 +51,9 @@ def parse_args():
     import argparse
     parser = argparse.ArgumentParser(description="pytorch deeplabv3 validation")
 
-    parser.add_argument("--data-path", default="/data/", help="VOCdevkit root")
-    parser.add_argument("--weights", default="./save_weights/model_29.pth")
-    parser.add_argument("--num-classes", default=20, type=int)
+    parser.add_argument("--data-path", default="VOCdevkit/", help="VOCdevkit root")
+    parser.add_argument("--weights", default="./save_weights/model_167.pth")
+    parser.add_argument("--num-classes", default=1, type=int)
     parser.add_argument("--aux", default=True, type=bool, help="auxilier loss")
     parser.add_argument("--device", default="cuda", help="training device")
     parser.add_argument('--print-freq', default=10, type=int, help='print frequency')

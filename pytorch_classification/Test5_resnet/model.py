@@ -1,3 +1,6 @@
+"""
+    ResNet 34 50 101模型搭建
+"""
 import torch.nn as nn
 import torch
 

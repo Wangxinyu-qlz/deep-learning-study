@@ -19,8 +19,8 @@ def main():
     aux = False  # inference time not need aux_classifier
     classes = 1
     weights_path = "./save_weights/model_169.pth"
-    img_path = "./test_img/06.png"
-    save_path = "./test_img/06"
+    img_path = "./test_img/boat12.png"
+    save_path = "./test_img/boat12"
     palette_path = "./palette.json"  # 调色板
 
     assert os.path.exists(weights_path), f"weights {weights_path} not found."
