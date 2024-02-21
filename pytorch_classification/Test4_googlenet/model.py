@@ -168,7 +168,7 @@ class Inception(nn.Module):
         branch4 = self.branch4(x)
 
         outputs = [branch1, branch2, branch3, branch4]
-        # 对四个分支的结果进行合并，需要合并的维度为channels，在深度上进行拼接，所以dim=1
+        # TODO 对四个分支的结果进行合并，需要合并的维度为channels，在深度上进行拼接，所以dim=1
         # [batch, channels, height, width]
         return torch.cat(outputs, 1)
 
@@ -202,7 +202,7 @@ class InceptionAux(nn.Module):
 
         # N x 2048
         x = F.relu(self.fc1(x), inplace=True)
-        # 实例化一个模型后，通过model.train()和model.eval()控制模型的状态
+        # TODO 实例化一个模型后，通过model.train()和model.eval()控制模型的状态
         # model.train()->self.training=True
         # model.train()->self.training=False
         x = F.dropout(x, 0.5, training=self.training)
