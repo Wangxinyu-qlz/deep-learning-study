@@ -1,13 +1,13 @@
-import time
-import os
 import datetime
+import os
+import time
 
 import torch
 
+import transforms as T
+from my_dataset import VOCSegmentation
 from src import deeplabv3_resnet50
 from train_utils import train_one_epoch, evaluate, create_lr_scheduler, init_distributed_mode, save_on_master, mkdir
-from my_dataset import VOCSegmentation
-import transforms as T
 
 
 class SegmentationPresetTrain:

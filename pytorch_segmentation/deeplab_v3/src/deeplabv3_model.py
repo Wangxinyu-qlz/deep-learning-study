@@ -1,12 +1,12 @@
 from collections import OrderedDict
-
 from typing import Dict, List
 
 import torch
 from torch import nn, Tensor
 from torch.nn import functional as F
-from .resnet_backbone import resnet50, resnet101
-from .mobilenet_backbone import mobilenet_v3_large
+
+from mobilenet_backbone import mobilenet_v3_large
+from resnet_backbone import resnet50, resnet101
 
 
 class IntermediateLayerGetter(nn.ModuleDict):
@@ -309,3 +309,19 @@ def deeplabv3_mobilenetv3_large(aux, num_classes=21, pretrain_backbone=False):
     model = DeepLabV3(backbone, classifier, aux_classifier)
 
     return model
+
+
+if __name__ == '__main__':
+    input1 = torch.rand([32, 3, 224, 224])
+    model = deeplabv3_resnet50(aux=False)
+    # print(model)
+    output = model(input1)
+    # print(output.shape)
+
+    # 可视化网络结构
+    from torchview import draw_graph
+    import os
+    os.environ["PATH"] += os.pathsep + 'C:/Program Files/Graphviz/bin/'
+    model_graph = draw_graph(model, input_size=input1.shape, depth=2, graph_dir='TB', expand_nested=True,
+                             save_graph=True, filename="deepLabV3_ResNet50", directory=".")
+    model_graph.visual_graph

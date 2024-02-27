@@ -1,9 +1,9 @@
+from functools import partial
 from typing import Callable, List, Optional
 
 import torch
 from torch import nn, Tensor
 from torch.nn import functional as F
-from functools import partial
 
 
 def _make_divisible(ch, divisor=8, min_ch=None):

@@ -1,10 +1,11 @@
 import os
+
 import torch
 
+import transforms as T
+from my_dataset import VOCSegmentation
 from src import deeplabv3_resnet50
 from train_utils import evaluate
-from my_dataset import VOCSegmentation
-import transforms as T
 
 
 class SegmentationPresetEval:

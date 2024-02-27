@@ -1,11 +1,11 @@
+import json
 import os
 import time
-import json
 
-import torch
-from torchvision import transforms
 import numpy as np
+import torch
 from PIL import Image
+from torchvision import transforms
 
 from src import deeplabv3_resnet50
 
