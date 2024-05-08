@@ -16,7 +16,7 @@ def time_synchronized():
 
 
 def main():
-    aux = False  # inference time not need aux_classifier
+    aux = False
     classes = 1
     weights_path = "./save_weights/model_169.pth"
     img_path = "./test_img/boat12.png"

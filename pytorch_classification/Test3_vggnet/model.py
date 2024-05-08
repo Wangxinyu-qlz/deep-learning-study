@@ -89,3 +89,17 @@ def vgg(model_name="vgg16", **kwargs):
 
 config = {"num_classes": 1000, "init_weights": True}
 vgg_model = vgg(model_name="vgg13", **config)
+
+
+if __name__ == '__main__':
+    # TODO 网络结构可视化
+    from torchview import draw_graph
+    import os
+    import torch
+    x = torch.randn(32, 3, 224, 224)
+    model = vgg()
+    os.environ["PATH"] += os.pathsep + 'C:/Program Files/Graphviz/bin/'
+    model_graph = draw_graph(model, input_size=x.shape, depth=3, graph_dir='TB', expand_nested=True,
+                             save_graph=True, filename="vgg16", directory=".")
+    model_graph.visual_graph
+    print("网络结构已保存")

@@ -12,16 +12,16 @@ class AlexNet(nn.Module):
             #     每个卷积核，分别输出三个通道，这三个通道进行求和，得到一个feature_map，有多少个卷积核，就有多少个feature_map
             # output = (intput - kernel_size + padding * 2) / stride + 1
             #        = (224 - 11 + 2 * 2) / 4 + 1 = 54.25 + 1 = 55
-            nn.Conv2d(3, 48, kernel_size=11, stride=4, padding=2),  # input[3, 224, 224]  output[48, 55, 55]
+            nn.Conv2d(3, 128, kernel_size=11, stride=4, padding=2),  # input[3, 224, 224]  output[48, 55, 55]
             # inplace=True 较少内存占用
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2),                  # output[48, 27, 27]
 
-            nn.Conv2d(48, 128, kernel_size=5, padding=2),           # output[128, 27, 27]
+            nn.Conv2d(128, 256, kernel_size=5, padding=2),           # output[128, 27, 27]
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2),                  # output[128, 13, 13]
 
-            nn.Conv2d(128, 192, kernel_size=3, padding=1),          # output[192, 13, 13]
+            nn.Conv2d(256, 192, kernel_size=3, padding=1),          # output[192, 13, 13]
             nn.ReLU(inplace=True),
 
             nn.Conv2d(192, 192, kernel_size=3, padding=1),          # output[192, 13, 13]

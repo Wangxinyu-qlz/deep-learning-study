@@ -5,8 +5,8 @@ import torch
 from torch import nn, Tensor
 from torch.nn import functional as F
 
-from mobilenet_backbone import mobilenet_v3_large
-from resnet_backbone import resnet50, resnet101
+from .mobilenet_backbone import mobilenet_v3_large
+from .resnet_backbone import resnet50, resnet101
 
 
 class IntermediateLayerGetter(nn.ModuleDict):

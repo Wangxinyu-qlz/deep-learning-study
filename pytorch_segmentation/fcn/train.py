@@ -80,13 +80,13 @@ def main(args):
 
     # VOCdevkit -> VOC2012 -> ImageSets -> Segmentation -> train.txt
     train_dataset = VOCSegmentation(args.data_path,
-                                    year="2012",
+                                    year="2007",
                                     transforms=get_transform(train=True),
                                     txt_name="train.txt")
 
     # VOCdevkit -> VOC2012 -> ImageSets -> Segmentation -> val.txt
     val_dataset = VOCSegmentation(args.data_path,
-                                  year="2012",
+                                  year="2007",
                                   transforms=get_transform(train=False),
                                   txt_name="val.txt")
 
@@ -169,12 +169,12 @@ def parse_args():
     import argparse
     parser = argparse.ArgumentParser(description="pytorch fcn training")
 
-    parser.add_argument("--data-path", default="/data/", help="VOCdevkit root")
-    parser.add_argument("--num-classes", default=20, type=int)
-    parser.add_argument("--aux", default=True, type=bool, help="auxilier loss")
+    parser.add_argument("--data-path", default="./data/", help="VOCdevkit root")
+    parser.add_argument("--num-classes", default=1, type=int)
+    parser.add_argument("--aux", default=False, type=bool, help="auxilier loss")
     parser.add_argument("--device", default="cuda", help="training device")
     parser.add_argument("-b", "--batch-size", default=4, type=int)
-    parser.add_argument("--epochs", default=30, type=int, metavar="N",
+    parser.add_argument("--epochs", default=200, type=int, metavar="N",
                         help="number of total epochs to train")
 
     parser.add_argument('--lr', default=0.0001, type=float, help='initial learning rate')

@@ -2,7 +2,7 @@ from tensorflow.keras import layers, models, Model, Sequential
 
 
 def GoogLeNet(im_height=224, im_width=224, class_num=1000, aux_logits=False):
-    # tensorflow中的tensor通道排序是NHWC
+    # tensorflow中的tensor通道排序是NHWC[batch, height, width, channel]
     input_image = layers.Input(shape=(im_height, im_width, 3), dtype="float32")
     # (None, 224, 224, 3)
     x = layers.Conv2D(64, kernel_size=7, strides=2, padding="SAME", activation="relu", name="conv2d_1")(input_image)
@@ -64,12 +64,15 @@ def GoogLeNet(im_height=224, im_width=224, class_num=1000, aux_logits=False):
 
 
 class Inception(layers.Layer):
+    # 为了保证四个分支的结果可以concat，必须保证四个分支输出的featureMap的尺寸相同
     def __init__(self, ch1x1, ch3x3red, ch3x3, ch5x5red, ch5x5, pool_proj, **kwargs):
         super(Inception, self).__init__(**kwargs)
         self.branch1 = layers.Conv2D(ch1x1, kernel_size=1, activation="relu")
 
         self.branch2 = Sequential([
             layers.Conv2D(ch3x3red, kernel_size=1, activation="relu"),
+            # 这里使用padding='same'：输出特征图的大小==输入特征图的大小
+            # stride 默认==1
             layers.Conv2D(ch3x3, kernel_size=3, padding="SAME", activation="relu")])      # output_size= input_size
 
         self.branch3 = Sequential([
@@ -80,11 +83,13 @@ class Inception(layers.Layer):
             layers.MaxPool2D(pool_size=3, strides=1, padding="SAME"),  # caution: default strides==pool_size
             layers.Conv2D(pool_proj, kernel_size=1, activation="relu")])                  # output_size= input_size
 
+    # 正向传播
     def call(self, inputs, **kwargs):
         branch1 = self.branch1(inputs)
         branch2 = self.branch2(inputs)
         branch3 = self.branch3(inputs)
         branch4 = self.branch4(inputs)
+        # 在深度（通道数）这个维度进行拼接
         outputs = layers.concatenate([branch1, branch2, branch3, branch4])
         return outputs
 
@@ -92,6 +97,7 @@ class Inception(layers.Layer):
 class InceptionAux(layers.Layer):
     def __init__(self, num_classes, **kwargs):
         super(InceptionAux, self).__init__(**kwargs)
+        # 这里padding==valid
         self.averagePool = layers.AvgPool2D(pool_size=5, strides=3)
         self.conv = layers.Conv2D(128, kernel_size=1, activation="relu")
 

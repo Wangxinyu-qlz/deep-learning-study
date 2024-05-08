@@ -144,10 +144,11 @@ class ResNet(nn.Module):
         self.in_channel = 64  # 输入特征矩阵的深度 所有网络(34/50/101/152)通用的
 
         # ResNeXt所需参数
-        # self.groups = groups
-        # self.width_per_group = width_per_group
+        self.groups = groups
+        self.width_per_group = width_per_group
 
         # output = (input - kernel_size + padding * 2) / stride + 1
+        #
         # 经过conv1之后，尺寸缩减为原来的一半
         self.conv1 = nn.Conv2d(3, self.in_channel, kernel_size=7, stride=2,
                                padding=3, bias=False)

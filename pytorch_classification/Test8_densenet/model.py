@@ -258,3 +258,19 @@ def load_state_dict(model: nn.Module, weights_path: str) -> None:
             del state_dict[key]
     model.load_state_dict(state_dict, strict=load_fc)
     print("successfully load pretrain-weights.")
+
+
+if __name__ == '__main__':
+    input1 = torch.rand([32, 3, 224, 224])
+    model = densenet121()
+    # print(model)
+    # output = model(input1)
+    # print(output.shape)
+
+    # 可视化网络结构
+    from torchview import draw_graph
+    import os
+    os.environ["PATH"] += os.pathsep + 'C:/Program Files/Graphviz/bin/'
+    model_graph = draw_graph(model, input_size=input1.shape, depth=3, graph_dir='TB', expand_nested=True,
+                             save_graph=True, filename="densenet121", directory=".")
+    model_graph.visual_graph

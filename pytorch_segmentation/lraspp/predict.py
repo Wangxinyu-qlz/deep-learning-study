@@ -15,10 +15,11 @@ def time_synchronized():
     return time.time()
 
 
-def main():
-    classes = 20
-    weights_path = "./save_weights/model_29.pth"
-    img_path = "./test.jpg"
+def predict(image_path, result_dir):
+    aux = False  # inference time not need aux_classifier
+    classes = 1
+    weights_path = "./save_weights/model_199.pth"
+    img_path = image_path
     palette_path = "./palette.json"
     assert os.path.exists(weights_path), f"weights {weights_path} not found."
     assert os.path.exists(img_path), f"image {img_path} not found."
@@ -69,8 +70,26 @@ def main():
         prediction = prediction.to("cpu").numpy().astype(np.uint8)
         mask = Image.fromarray(prediction)
         mask.putpalette(pallette)
-        mask.save("test_result.png")
+        # 从图像路径中提取文件名（不含扩展名）
+        file_name = os.path.splitext(os.path.basename(image_path))[0]
+
+        # 生成预测结果图像的保存路径
+        output_path = os.path.join(result_dir, f"{file_name}_predicted.png")
+
+        # 保存预测结果图像
+        mask.save(output_path)
 
 
 if __name__ == '__main__':
-    main()
+    # 定义图像目录路径
+    image_dir = "test"
+    result_dir = "test_result"
+    if not os.path.exists(result_dir):
+        os.mkdir(result_dir)
+
+    # 获取图像目录下所有jpg文件的路径
+    jpg_files = [os.path.join(image_dir, f) for f in os.listdir(image_dir) if f.endswith('.jpg')]
+
+    # 循环遍历每个jpg文件并调用predict函数
+    for jpg_file in jpg_files:
+        predict(jpg_file, result_dir)
