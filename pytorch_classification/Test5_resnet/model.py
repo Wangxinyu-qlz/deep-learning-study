@@ -100,9 +100,9 @@ class Bottleneck(nn.Module):
         # -----------------------------------------
         # 卷积核的个数是第1、2层的4倍
         self.conv3 = nn.Conv2d(in_channels=out_channel,
-                               out_channels=out_channel*self.expansion,
+                               out_channels=out_channel * self.expansion,
                                kernel_size=1, stride=1, bias=False)  # unsqueeze channels
-        self.bn3 = nn.BatchNorm2d(out_channel*self.expansion)
+        self.bn3 = nn.BatchNorm2d(out_channel * self.expansion)
         self.relu = nn.ReLU(inplace=True)
 
         self.downsample = downsample
@@ -234,6 +234,12 @@ class ResNet(nn.Module):
         return x
 
 
+def resnet18(num_classes=1000, include_top=True):
+    # https://download.pytorch.org/models/resnet34-333f7ec4.pth
+    return ResNet(BasicBlock, [2, 2, 2, 2], num_classes=num_classes,
+                  include_top=include_top)
+
+
 def resnet34(num_classes=1000, include_top=True):
     # https://download.pytorch.org/models/resnet34-333f7ec4.pth
     return ResNet(BasicBlock, [3, 4, 6, 3], num_classes=num_classes,
@@ -272,3 +278,18 @@ def resnext101_32x8d(num_classes=1000, include_top=True):
                   include_top=include_top,
                   groups=groups,
                   width_per_group=width_per_group)
+
+
+if __name__ == '__main__':
+    # TODO 网络结构可视化
+    from torchview import draw_graph
+    import os
+    import torch
+
+    x = torch.randn(1, 3, 128, 128)
+    model = resnet18(3, True)
+    os.environ["PATH"] += os.pathsep + 'C:/Program Files/Graphviz/bin/'
+    model_graph = draw_graph(model, input_size=x.shape, depth=3, graph_dir='TB', expand_nested=True,
+                             save_graph=True, filename="resnet18", directory=".")
+    model_graph.visual_graph
+    print("网络结构已保存")
