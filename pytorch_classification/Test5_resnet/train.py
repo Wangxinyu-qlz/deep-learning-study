@@ -102,7 +102,7 @@ def main():
 
     # construct an optimizer
     params = [p for p in net.parameters() if p.requires_grad]
-    optimizer = optim.Adam(params, lr=0.0001)
+    optimizer = optim.Adam(params, lr=0.0001, weight_decay=1e-4)
 
     epochs = 200
     best_acc = 0.0

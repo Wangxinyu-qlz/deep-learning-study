@@ -148,7 +148,6 @@ class ResNet(nn.Module):
         self.width_per_group = width_per_group
 
         # output = (input - kernel_size + padding * 2) / stride + 1
-        #
         # 经过conv1之后，尺寸缩减为原来的一半
         self.conv1 = nn.Conv2d(3, self.in_channel, kernel_size=7, stride=2,
                                padding=3, bias=False)
